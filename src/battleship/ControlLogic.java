@@ -136,7 +136,7 @@ public class ControlLogic implements IControlLogic
                         break;
                     }
                 }
-            } else if (userCommand[0].equals("restore"))
+            } else if (userCommand[0].equals("reset"))
             {
                 oneBoardShips   = 0;
                 twoBoardShips   = 0;
@@ -180,7 +180,7 @@ public class ControlLogic implements IControlLogic
 
                         break;
                     }
-                    case "restore":
+                    case "reset":
                     {
                         isUserTurn = false;
                         isRestored = true;
@@ -188,7 +188,7 @@ public class ControlLogic implements IControlLogic
                         break;
                     }
                     default:                    
-                        _view.ShowMessage("Мапу вже налаштовано, ви не можете встановити корабель. Щоб почати спочатку, введіть \"restore\"");
+                        _view.ShowMessage("Мапу вже налаштовано, ви не можете встановити корабель. Щоб почати спочатку, введіть \"reset\"");
                         break;                    
                 }
 

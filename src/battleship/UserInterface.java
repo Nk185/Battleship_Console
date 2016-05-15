@@ -1,22 +1,13 @@
 package battleship;
 
-import java.io.PrintStream;
 import java.util.Scanner;
 
 public class UserInterface implements IUser
 {
-    PrintStream out;
     
     public UserInterface()    
     {
-        try
-        {
-            out = new PrintStream(System.out, true, "UTF8");
-        }
-        catch (Exception e)
-        {
-          
-        }                    
+                 
     }
     
     /**
@@ -45,7 +36,7 @@ public class UserInterface implements IUser
      * <ul>
      *   <li>"set x y t dr", where t - is a type of ship [1..4] and dr is a direction [left (l), right(r), up(u), down(d)];</li>
      *   <li>"hit x y"</li>
-     *   <li>"restore"</li>
+     *   <li>"reset"</li>
      * </ul>
      * @return verified array of strings with command. 
      * <p><i>Example: {"set","2","7","4", "u"}</i>;
@@ -64,7 +55,7 @@ public class UserInterface implements IUser
                 System.out.println("\nВведіть команду:");        
                 command = new Scanner(System.in).nextLine();     
             }
-            while ((!command.contains("set")) && (!command.contains("hit")) && (!command.contains("restore")));
+            while ((!command.contains("set")) && (!command.contains("hit")) && (!command.contains("reset")));
 
 
             resCommand = command.split(" ");
@@ -90,7 +81,7 @@ public class UserInterface implements IUser
 
                         break;
                     }
-                case "restore":
+                case "reset":
                     {
                         success = true;
                         break;
