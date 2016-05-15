@@ -58,7 +58,6 @@ public class ControlLogic implements IControlLogic
     private MapSettings AskForUserMap()
     {
         MapSettings ms       = new MapSettings();
-        MapWorker mw         = new MapWorker();
         byte oneBoardShips   = 0; // Total count 4
         byte twoBoardShips   = 0; // Total count 3
         byte threeBoardShips = 0; // Total count 2
@@ -88,7 +87,7 @@ public class ControlLogic implements IControlLogic
                     {
                         if (oneBoardShips < 4)
                         {
-                            if (mw.SetShipByCoord(ms, Integer.parseInt(userCommand[1]), Integer.parseInt(userCommand[2]), Integer.parseInt(userCommand[3]), userCommand[4]))
+                            if (MapEngine.SetShipByCoord(ms, Integer.parseInt(userCommand[1]), Integer.parseInt(userCommand[2]), Integer.parseInt(userCommand[3]), userCommand[4]))
                                 oneBoardShips++;
                             else
                                 _view.ShowMessage("Хибні параметри команди set. Можливо, ви намагаєтесь встановити корабель за границями поля"
@@ -101,7 +100,7 @@ public class ControlLogic implements IControlLogic
                     {
                         if (twoBoardShips < 3)
                         {
-                            if (mw.SetShipByCoord(ms, Integer.parseInt(userCommand[1]), Integer.parseInt(userCommand[2]), Integer.parseInt(userCommand[3]), userCommand[4]))
+                            if (MapEngine.SetShipByCoord(ms, Integer.parseInt(userCommand[1]), Integer.parseInt(userCommand[2]), Integer.parseInt(userCommand[3]), userCommand[4]))
                                 twoBoardShips++;
                             else
                                 _view.ShowMessage("Хибні параметри команди set. Можливо, ви намагаєтесь встановити корабель за границями поля"
@@ -114,11 +113,11 @@ public class ControlLogic implements IControlLogic
                     {
                         if (threeBoardShips < 2)
                         {
-                            if (mw.SetShipByCoord(ms, Integer.parseInt(userCommand[1]), Integer.parseInt(userCommand[2]), Integer.parseInt(userCommand[3]), userCommand[4]))
+                            if (MapEngine.SetShipByCoord(ms, Integer.parseInt(userCommand[1]), Integer.parseInt(userCommand[2]), Integer.parseInt(userCommand[3]), userCommand[4]))
                                 threeBoardShips++;
                             else
-                                _view.ShowMessage("Неверные параметры комманды set. Возможно, вы пытаетесь построить корабль за пределами поля"
-                                        + " или слишком близко к другому кораблю.");
+                                _view.ShowMessage("Хибні параметри команди set. Можливо, ви намагаєтесь встановити корабель за границями поля"
+                                        + " або занадто близько до іншого корабля.");
                         } else
                             _view.ShowMessage("Усі доступні кораблі цього типу вже встановлені.");
                         break;
@@ -127,11 +126,11 @@ public class ControlLogic implements IControlLogic
                     {
                         if (fourBoardShips < 1)
                         {
-                            if (mw.SetShipByCoord(ms, Integer.parseInt(userCommand[1]), Integer.parseInt(userCommand[2]), Integer.parseInt(userCommand[3]), userCommand[4]))
+                            if (MapEngine.SetShipByCoord(ms, Integer.parseInt(userCommand[1]), Integer.parseInt(userCommand[2]), Integer.parseInt(userCommand[3]), userCommand[4]))
                                 fourBoardShips++;
                             else
-                                _view.ShowMessage("Неверные параметры комманды set. Возможно, вы пытаетесь построить корабль за пределами поля"
-                                        + " или слишком близко к другому кораблю.");
+                                _view.ShowMessage("Хибні параметри команди set. Можливо, ви намагаєтесь встановити корабель за границями поля"
+                                        + " або занадто близько до іншого корабля.");
                         } else
                             _view.ShowMessage("Усі доступні кораблі цього типу вже встановлені.");
                         break;

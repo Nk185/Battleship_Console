@@ -6,8 +6,6 @@ public class EnemyLogic implements IEnemyLogic
 {
     private int _LastHitedX = -1;
     private int _LastHitedY = -1;
-    private int _HitedCellsCount = 0;
-    private int _MaxBoardShip = 4;
     private boolean _findVertical     = true;
     private boolean _isLeftCellChecked  = false;
     private boolean _isRightCellChecked = false;
@@ -15,7 +13,7 @@ public class EnemyLogic implements IEnemyLogic
     private boolean _isDownCellChecked  = false;
     @Override
     // MapSettings (userMap) ALLWAYS WILL BE PASSED BY REFERENCE!!!!!
-    public void Fire(MapSettings userMap) // TODO: create a logic
+    public void Fire(MapSettings userMap)
     {
         Random rand = new Random();
         boolean success = false;
@@ -26,7 +24,6 @@ public class EnemyLogic implements IEnemyLogic
        
         if (this._LastHitedX == -1 && this._LastHitedY == -1)
         {
-            System.out.println("Random fire");
             while (!success)
             {
                 xCoord = (byte) (rand.nextInt(10));
@@ -36,19 +33,21 @@ public class EnemyLogic implements IEnemyLogic
                     success = false;
                 else
                 {
-                    System.out.println("Random fire: hits ("+(xCoord+1)+" ; "+(yCoord+1)+")");
-
                     if (userMap.Map[xCoord][yCoord] == ECellStatus.ContainsShip)
                     {
                         userMap.Map[xCoord][yCoord] = ECellStatus.Hited;
                         success = true;
 
-                        if (!isOneBoardShip(xCoord, yCoord, userMap))
+                        if (!MapEngine.isOneBoardShip(xCoord, yCoord, userMap))
                         {
                             this._LastHitedX = xCoord;
                             this._LastHitedY = yCoord;
                         }
-                        else SurroundShipWithEmptyCell(xCoord, yCoord, userMap, 'h');
+                        else
+                        {
+                            MapEngine.SurroundShipWithEmptyCell(xCoord, yCoord, userMap, 'h');
+                            success = false;
+                        }
                     }
                     else if (userMap.Map[xCoord][yCoord] == ECellStatus.ClosedEmpty || userMap.Map[xCoord][yCoord] == ECellStatus.LocatedNearShip)
                     {
@@ -59,28 +58,30 @@ public class EnemyLogic implements IEnemyLogic
             }
         }
 
+
+
         if (this._LastHitedX != -1 && this._LastHitedY != -1)            
         {
-            System.out.println("Finder mode: on");
-
             if (!this._isLeftCellChecked && (this._LastHitedX - 1 >= 0))
             {
-                System.out.println("Choosed direction is: left");
-
                 for (int i = this._LastHitedX - 1; i >= this._LastHitedX - 4; i--)
                 {
                     if (i >= 0 && (userMap.Map[i][this._LastHitedY] == ECellStatus.ContainsShip))
                     {
                         userMap.Map[i][this._LastHitedY] = ECellStatus.Hited;
                         this._findVertical = false;
-                        this._HitedCellsCount++;
                     }
                     else
                     {
-                        if (i >= 0 && userMap.Map[i][this._LastHitedY] == ECellStatus.LocatedNearShip)
+                        if (i >= 0 && userMap.Map[i][this._LastHitedY] == ECellStatus.LocatedNearShip && !MapEngine.isShipDestroyed(i, this._LastHitedY, userMap, 'h'))
                         {
                             userMap.Map[i][this._LastHitedY] = ECellStatus.Empty;
                             moveDone = true;
+                        }
+                        else if (i >= 0 && MapEngine.isShipDestroyed(i, this._LastHitedY, userMap, 'h'))
+                        {
+                            this._isRightCellChecked = true;
+                            moveDone = false;
                         }
 
                         this._isLeftCellChecked = true;
@@ -89,31 +90,38 @@ public class EnemyLogic implements IEnemyLogic
                 }
 
                 if (this._LastHitedX + 1 <= 9)
+                {
                     if (userMap.Map[this._LastHitedX + 1][this._LastHitedY] == ECellStatus.Empty)                    
                         this._isRightCellChecked = true;
+                    else if (userMap.Map[this._LastHitedX + 1][this._LastHitedY] == ECellStatus.LocatedNearShip)
+                        this._isRightCellChecked = true;
+                }
             }
             else if (this._LastHitedX - 1 < 0)
                 this._isLeftCellChecked = true;
 
+
+
             if (!this._isRightCellChecked && (this._LastHitedX + 1 <= 9) && !moveDone)
             {
-                System.out.println("Choosed direction is: right");
-
                 for (int i = this._LastHitedX + 1; i <= this._LastHitedX + 4; i++)
                 {
                     if (i <= 9 && (userMap.Map[i][this._LastHitedY] == ECellStatus.ContainsShip))
                     {
                         userMap.Map[i][this._LastHitedY] = ECellStatus.Hited;
                         this._findVertical = false;
-                        this._HitedCellsCount++;
                     }
                     else
                     {
-                        if (i <= 9 && userMap.Map[i][this._LastHitedY] == ECellStatus.LocatedNearShip)
+                        if (i <= 9 && userMap.Map[i][this._LastHitedY] == ECellStatus.LocatedNearShip && !MapEngine.isShipDestroyed(i, this._LastHitedY, userMap, 'h'))
                         {
                             userMap.Map[i][this._LastHitedY] = ECellStatus.Empty;
                             moveDone = true;
                         }
+                        else if (i <= 9 && MapEngine.isShipDestroyed(i, this._LastHitedY, userMap, 'h'))
+                            moveDone = false;
+                        
+
                         this._isRightCellChecked = true;
                         break;
                     }
@@ -122,25 +130,29 @@ public class EnemyLogic implements IEnemyLogic
             else if (this._LastHitedX + 1 > 9)
                 this._isRightCellChecked = true;
 
-            /*if (this._findVertical)
-            {
-                if (!this._isUpCellChecked && !moveDone)
-                {
-                    System.out.println("Choosed direction is: up");
 
+
+            if (this._findVertical) // fix down direction
+            {
+                if (!this._isUpCellChecked && (this._LastHitedY - 1 >= 0) && !moveDone)
+                {
                     for (int i = this._LastHitedY - 1; i >= this._LastHitedY - 4; i--)
                     {
                        if (i >= 0 && (userMap.Map[this._LastHitedX][i] == ECellStatus.ContainsShip))
                        {
                             userMap.Map[this._LastHitedX][i] = ECellStatus.Hited;
-                            this._HitedCellsCount++;
                        }
                        else
                        {
-                          if (i >= 0 && userMap.Map[this._LastHitedX][i] == ECellStatus.LocatedNearShip)
+                            if (i >= 0 && userMap.Map[this._LastHitedX][i] == ECellStatus.LocatedNearShip && !MapEngine.isShipDestroyed(this._LastHitedX, i, userMap, 'v'))
                             {
                                 userMap.Map[this._LastHitedX][i] = ECellStatus.Empty;
                                 moveDone = true;
+                            }
+                            else if (i >= 0 && MapEngine.isShipDestroyed(this._LastHitedX, i, userMap, 'v'))
+                            {
+                                this._isDownCellChecked = true;
+                                moveDone = false;
                             }
 
                             this._isUpCellChecked = true;
@@ -149,38 +161,46 @@ public class EnemyLogic implements IEnemyLogic
                     }
 
                     if (this._LastHitedY + 1 <= 9)
-                        if (userMap.Map[this._LastHitedX][this._LastHitedY + 1] == ECellStatus.Empty)                    
-                            this._isDownCellChecked = true;     
+                    {
+                        if (userMap.Map[this._LastHitedX][this._LastHitedY + 1] == ECellStatus.Empty
+                                || userMap.Map[this._LastHitedX][this._LastHitedY + 1] == ECellStatus.LocatedNearShip)
+                            this._isDownCellChecked = true;
+                    }
+
                 }
+                else if (this._LastHitedY - 1 < 0)
+                    this._isUpCellChecked = true;
 
-                if (!this._isDownCellChecked && !moveDone)
+                if (!this._isDownCellChecked && (this._LastHitedY + 1 <= 9) && !moveDone)
                 {
-                    System.out.println("Choosed direction is: down");
-
-                    for (int i = this._LastHitedX + 1; i <= this._LastHitedX + 4; i++)
+                    for (int i = this._LastHitedY + 1; i <= this._LastHitedY + 4; i++)
                     {
                         if (i <= 9 && (userMap.Map[this._LastHitedX][i] == ECellStatus.ContainsShip))
                         {
                             userMap.Map[this._LastHitedX][i] = ECellStatus.Hited;
-                            this._HitedCellsCount++;
                         }
                         else
                         {
-                            if (i <= 9 && userMap.Map[this._LastHitedX][i] == ECellStatus.LocatedNearShip)
+                            if (i <= 9 && userMap.Map[this._LastHitedX][i] == ECellStatus.LocatedNearShip && !MapEngine.isShipDestroyed(this._LastHitedX, i, userMap, 'v'))
                             {
                                 userMap.Map[this._LastHitedX][i] = ECellStatus.Empty;
                                 moveDone = true;
                             }
+                            else if (i <= 9 && MapEngine.isShipDestroyed(this._LastHitedX, i, userMap, 'v'))
+                                moveDone = false;
+
                             this._isDownCellChecked = true;
                             break;
                         }
                     }
                 }
-            }*/
+                else if (this._LastHitedY + 1 > 9)
+                    this._isDownCellChecked = true;
+            }
 
             if (this._isLeftCellChecked && this._isRightCellChecked && !this._findVertical)
             {
-                SurroundShipWithEmptyCell(this._LastHitedX, this._LastHitedY, userMap, 'h');
+                MapEngine.SurroundShipWithEmptyCell(this._LastHitedX, this._LastHitedY, userMap, 'h');
 
                 this._LastHitedX = -1;
                 this._LastHitedY = -1;
@@ -196,6 +216,8 @@ public class EnemyLogic implements IEnemyLogic
             }
             else if (this._isDownCellChecked && this._isUpCellChecked)
             {
+                MapEngine.SurroundShipWithEmptyCell(this._LastHitedX, this._LastHitedY, userMap, 'v');
+
                 this._LastHitedX = -1;
                 this._LastHitedY = -1;
 
@@ -215,7 +237,6 @@ public class EnemyLogic implements IEnemyLogic
     public MapSettings GenerateEnemyMap()
     {
         MapSettings ms = new MapSettings();
-        MapWorker mw   = new MapWorker();
         Random rand    = new Random();
         byte oneBoardShips   = 0; // Total count 4.
         byte twoBoardShips   = 0; // Total count 3.
@@ -260,159 +281,27 @@ public class EnemyLogic implements IEnemyLogic
             {
                 case 1:
                     if (oneBoardShips < 4)
-                        if (mw.SetShipByCoord(ms, xCoord, yCoord, boardNumber, direction))
+                        if (MapEngine.SetShipByCoord(ms, xCoord, yCoord, boardNumber, direction))
                             oneBoardShips++;
                     break;
                 case 2:
                     if (twoBoardShips < 3)
-                        if (mw.SetShipByCoord(ms, xCoord, yCoord, boardNumber, direction))
+                        if (MapEngine.SetShipByCoord(ms, xCoord, yCoord, boardNumber, direction))
                             twoBoardShips++;
                     break;
                 case 3:
                     if (threeBoardShips < 2)
-                        if (mw.SetShipByCoord(ms, xCoord, yCoord, boardNumber, direction))
+                        if (MapEngine.SetShipByCoord(ms, xCoord, yCoord, boardNumber, direction))
                             threeBoardShips++;
                     break;
                 case 4:
                     if (fourBoardShips < 1)
-                        if (mw.SetShipByCoord(ms, xCoord, yCoord, boardNumber, direction))
+                        if (MapEngine.SetShipByCoord(ms, xCoord, yCoord, boardNumber, direction))
                             fourBoardShips++;
                     break;
             }
         }
 
         return ms;
-    }
-
-    // fix bugs
-    private boolean isOneBoardShip(int xCoord, int yCoord, MapSettings userMap) 
-    {
-        boolean isOneBoardShip = false;
-
-        if (xCoord - 1 >= 0)
-        {
-            if (userMap.Map[xCoord - 1][yCoord] == ECellStatus.LocatedNearShip || userMap.Map[xCoord - 1][yCoord] == ECellStatus.Empty)
-                isOneBoardShip = true;
-            else isOneBoardShip = false;
-        }
-        else if (xCoord - 1 < 0)
-            isOneBoardShip = true;
-
-        if (isOneBoardShip)
-            if (xCoord + 1 <= 9)
-            {
-                if (userMap.Map[xCoord + 1][yCoord] == ECellStatus.LocatedNearShip || userMap.Map[xCoord + 1][yCoord] == ECellStatus.Empty)
-                    isOneBoardShip = true;
-                else isOneBoardShip = false;
-            }
-            else if (xCoord + 1 > 9)
-                isOneBoardShip = true;
-
-        if (isOneBoardShip)
-            if (yCoord - 1 >= 0)
-            {
-                if (userMap.Map[xCoord][yCoord - 1] == ECellStatus.LocatedNearShip || userMap.Map[xCoord][yCoord - 1] == ECellStatus.Empty)
-                    isOneBoardShip = true;
-                else isOneBoardShip = false;
-            }
-            else if (yCoord - 1 < 0)
-                isOneBoardShip = true;
-
-        if (isOneBoardShip)
-            if (yCoord + 1 <= 9)
-            {
-                if (userMap.Map[xCoord][yCoord + 1] == ECellStatus.LocatedNearShip || userMap.Map[xCoord][yCoord + 1] == ECellStatus.Empty)
-                    isOneBoardShip = true;
-                else isOneBoardShip = false;
-            }
-            else if (yCoord + 1 > 9)
-                isOneBoardShip = true;
-
-        return isOneBoardShip;
-    }
-
-    private void SurroundShipWithEmptyCell(int xCoord, int yCoord, MapSettings userMap, char shipDirection)
-    {
-        if (shipDirection == 'h') // horizontalShip
-        {
-            int lastBoardLeft = -1;
-            int lastBoardRight = -1;
-
-            for (int i = xCoord; i <= xCoord + 5; i++)
-            {
-                if (i <= 9)
-                {
-                    if (userMap.Map[i][yCoord] == ECellStatus.Hited)
-                    {
-                        if (yCoord - 1 >= 0)
-                            userMap.Map[i][yCoord - 1] = ECellStatus.Empty;
-                        if (yCoord + 1 <= 9)
-                            userMap.Map[i][yCoord + 1] = ECellStatus.Empty;
-                    }
-                    else 
-                    {
-                        lastBoardRight = i;
-                        break;
-                    }
-                }
-                else
-                {
-                    lastBoardRight = -1;
-                    break;
-                }
-            }
-
-            for (int i = xCoord; i >= xCoord - 5; i--)
-            {
-                if (i >= 0)
-                {
-                    if (userMap.Map[i][yCoord] == ECellStatus.Hited)
-                    {
-                        if (yCoord - 1 >= 0)
-                            userMap.Map[i][yCoord - 1] = ECellStatus.Empty;
-                        if (yCoord + 1 <= 9)
-                            userMap.Map[i][yCoord + 1] = ECellStatus.Empty;
-                    }
-                    else 
-                    {
-                        lastBoardLeft = i;
-                        break;
-                    }
-                }
-                else
-                {
-                    lastBoardLeft = -1;
-                    break;
-                }
-            }
-
-            if (lastBoardLeft != -1)
-            {
-                userMap.Map[lastBoardLeft][yCoord] = ECellStatus.Empty;
-                
-                if (yCoord - 1 >= 0)
-                    userMap.Map[lastBoardLeft][yCoord - 1] = ECellStatus.Empty;
-                
-                if (yCoord + 1 <= 9)
-                    userMap.Map[lastBoardLeft][yCoord + 1] = ECellStatus.Empty;
-            }
-
-            if (lastBoardRight != -1)
-            {
-                userMap.Map[lastBoardRight][yCoord] = ECellStatus.Empty;
-                
-                if (yCoord - 1 >= 0)
-                    userMap.Map[lastBoardRight][yCoord - 1] = ECellStatus.Empty;
-                
-                if (yCoord + 1 <= 9)
-                    userMap.Map[lastBoardRight][yCoord + 1] = ECellStatus.Empty;
-            }
-
-        }
-        else if (shipDirection == 'v')
-        {
-            int lastBoardTop;
-            int lastBoardBottom;
-        }
     }
 }

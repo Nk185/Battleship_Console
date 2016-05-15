@@ -34,7 +34,7 @@ public class Map implements IMap //This is Model in MVP pattern
                     res += "[*]";
                 else if (_enemyMap.Map[j][i] == ECellStatus.Hited)
                     res += "[X]";
-                else if (showEnemyShips && _enemyMap.Map[j][i] == ECellStatus.ContainsShip)
+                else if (showEnemyShips &&_enemyMap.Map[j][i] == ECellStatus.ContainsShip)
                     res += "[S]";
                 else
                     res += "[ ]";
@@ -87,6 +87,12 @@ public class Map implements IMap //This is Model in MVP pattern
                 case ContainsShip:
                 {
                     this._enemyMap.Map[x][y] = ECellStatus.Hited;
+
+                    if (MapEngine.isOneBoardShip(x, y, this._enemyMap))
+                        MapEngine.SurroundShipWithEmptyCell(x, y, this._enemyMap, 'h');
+                    else
+                        CheckShipOnDistruction(x, y, this._enemyMap);
+
                     return true;
                 }
                 case ClosedEmpty:
@@ -163,6 +169,20 @@ public class Map implements IMap //This is Model in MVP pattern
         } catch (Exception e)
         {
             return false;
+        }
+    }
+
+    private void CheckShipOnDistruction(int x, int y, MapSettings distMap)
+    {
+        if (MapEngine.getShipDirection(x, y, distMap) == 'h')
+        {
+            if (MapEngine.isShipDestroyed(x, y, distMap, 'h'))            
+                MapEngine.SurroundShipWithEmptyCell(x, y, distMap, 'h');
+        }
+        else if (MapEngine.getShipDirection(x, y, distMap) == 'v')
+        {
+            if (MapEngine.isShipDestroyed(x, y, distMap, 'v'))            
+                MapEngine.SurroundShipWithEmptyCell(x, y, distMap, 'v');
         }
     }
 }
